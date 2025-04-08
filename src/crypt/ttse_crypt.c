@@ -85,9 +85,9 @@ void encrypt_begin(FILE* fInput, FILE* fOutput)
 
     while(1)
     {
-        uint8_t remaining_bytes = 8;
+        int8_t remaining_bytes = 8;
 
-        for (uint8_t i = 0; i < 8; i++)
+        for (int8_t i = 0; i < 8; i++)
         {
             int32_t read_char = read_decrypted(fInput, &total_bytes_read);
             if (read_char == -1)
@@ -103,13 +103,13 @@ void encrypt_begin(FILE* fInput, FILE* fOutput)
         int8_t previous_matches = -1;
         int32_t match_position = 0;
 
-        for (uint32_t i = 0; i < 256; i++)
+        for (int32_t i = 0; i < 256; i++)
         {
             int8_t current_matches = 0;
 
             if (remaining_bytes > 0)
             {
-                for (int j = 0; j < remaining_bytes; j++)
+                for (int8_t j = 0; j < remaining_bytes; j++)
                 {
                     if (key_buffer[j] == key_stream[key_stream_offset])
                         current_matches++;
@@ -127,13 +127,13 @@ void encrypt_begin(FILE* fInput, FILE* fOutput)
                     break;
             }
 
-            key_stream_offset += 8 - (int8_t)remaining_bytes;
+            key_stream_offset += 8 - remaining_bytes;
         }
 
         write_encrypted(fOutput, (int8_t)match_position, &rolling_key_1, &rolling_key_2);
 
         uint8_t match_mask = 0;
-        for (uint8_t i = 0, j = 1; i < 8; i++, j *= 2)
+        for (int8_t i = 0, j = 1; i < 8; i++, j *= 2)
         {
             if (i >= remaining_bytes)
                 break;
@@ -144,7 +144,7 @@ void encrypt_begin(FILE* fInput, FILE* fOutput)
 
         write_encrypted(fOutput, (int8_t)match_mask, &rolling_key_1, &rolling_key_2);
 
-        for (uint8_t i = 0; i < 8; i++)
+        for (int8_t i = 0; i < 8; i++)
         {
             if (match_mask % 2 == 1)
                 write_encrypted(fOutput, key_buffer[i], &rolling_key_1, &rolling_key_2);
@@ -154,7 +154,7 @@ void encrypt_begin(FILE* fInput, FILE* fOutput)
 
         if (remaining_bytes >= 8)
         {
-            for (uint8_t i = 0; i < 8; i++)
+            for (int8_t i = 0; i < 8; i++)
                 key_stream[8 * match_position + i] = key_buffer[i];
         }
         else
@@ -196,7 +196,7 @@ void decrypt_begin(FILE* fInput, FILE* fOutput)
 
     while (1)
     {
-        for (uint8_t j = 0; j < 8; j++)
+        for (int8_t j = 0; j < 8; j++)
         {
             if (read_char_2 % 2 == 1)
                 key_stream[8 * read_char_1 + j] = read_encrypted(fInput, &rolling_key_1, &rolling_key_2);
@@ -208,7 +208,7 @@ void decrypt_begin(FILE* fInput, FILE* fOutput)
         read_char_1 = read_encrypted(fInput, &rolling_key_1, &rolling_key_2);
         if (read_char_1 == -1)
         {
-            for (uint8_t i = 0; i < 8; i++)
+            for (int8_t i = 0; i < 8; i++)
                 write_decrypted(fOutput, key_buffer[i]);
 
             break;
@@ -217,13 +217,13 @@ void decrypt_begin(FILE* fInput, FILE* fOutput)
         read_char_2 = read_encrypted(fInput, &rolling_key_1, &rolling_key_2);
         if (read_char_2 == -1)
         {
-            for (uint8_t i = 0; i < read_char_1; i++)
+            for (int8_t i = 0; i < read_char_1; i++)
                 write_decrypted(fOutput, key_buffer[i]);
 
             break;
         }
 
-        for (uint8_t i = 0; i < 8; i++)
+        for (int8_t i = 0; i < 8; i++)
             write_decrypted(fOutput, key_buffer[i]);
     }
 
@@ -245,11 +245,11 @@ void write_header_checksum(FILE* fOutput, uint32_t key)
 }
 
 
-char read_header_secret(FILE* fInput)
+uint8_t read_header_secret(FILE* fInput)
 {
-    char c;
-    fread(&c, 1, 1, fInput);
-    return (char)c ^ 0x53;
+    uint8_t result;
+    fread(&result, 1, 1, fInput);
+    return (uint8_t)result ^ 0x53;
 }
 
 uint32_t read_header_checksum(FILE* fInput)
@@ -268,7 +268,7 @@ void write_encrypted(FILE* fOutput, int8_t input_char, uint8_t* rolling_key_1, u
     uint8_t encrypted_char = input_char ^ i ^ 0xB9;
     putc(encrypted_char, fOutput);
 
-    //printf("Write at offset: %ld -> 0x%02x\n", ftell(fOutput) - 1, encrypted_char);
+    // printf("Write at offset: %ld -> 0x%02x\n", ftell(fOutput) - 1, encrypted_char);
 }
 
 void write_decrypted(FILE* fOutput, int8_t input_char)
@@ -304,7 +304,7 @@ int32_t read_decrypted(FILE* fInput, uint32_t* total_bytes_read)
     if (result != -1)
         (*total_bytes_read)++;
 
-    //printf("Read at offset: %ld -> 0x%02x\n", ftell(fInput) - 1, result);
+    // printf("Read at offset: %ld -> 0x%02x\n", ftell(fInput) - 1, result);
     return result;
 }
 
@@ -316,13 +316,13 @@ char* key_stream_create()
     if (key_stream == (void*)0)
         return (void*)0;
 
-    for (int i = 0, j = 0; i < 256; i++, j += 8)
+    for (int32_t i = 0, j = 0; i < 256; i++, j += 8)
     {
-        for (int k = 0; k < 8; k++)
+        for (int8_t k = 0; k < 8; k++)
             key_stream[j + k] = i;
     }
 
-    for (int i = 0; i < 8; i++)
+    for (int8_t i = 0; i < 8; i++)
         key_stream[2048 + i] = 0;
 
     return key_stream;
@@ -332,7 +332,7 @@ uint8_t reverse_bits(uint8_t key)
 {
     uint8_t result = 0;
 
-    for (uint8_t i = 0, j = 7; i < 8; i++, j--)
+    for (int8_t i = 0, j = 7; i < 8; i++, j--)
         result |= ((key >> i) & 1) << j;
 
     return result;
@@ -351,7 +351,7 @@ void create_general(const char* output_filepath)
         return;
     }
 
-    for (uint32_t i = 0; i < 8; i++)
+    for (int32_t i = 0; i < 8; i++)
         putc('\0', fOutput);
 
     fclose(fOutput);

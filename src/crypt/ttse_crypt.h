@@ -13,7 +13,7 @@ void decrypt_begin(FILE*, FILE*);
 void write_header_secret(FILE*, uint8_t);
 void write_header_checksum(FILE*, uint32_t);
 
-char read_header_secret(FILE*);
+uint8_t read_header_secret(FILE*);
 uint32_t read_header_checksum(FILE*);
 
 void write_encrypted(FILE*, int8_t, uint8_t*, uint8_t*);
