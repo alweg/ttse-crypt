@@ -99,6 +99,9 @@ void encrypt_begin(FILE* fInput, FILE* fOutput)
             key_buffer[i] = read_char;
         }
 
+        if (remaining_bytes == 0)
+            break;
+
         uint32_t key_stream_offset = 0;
         int8_t previous_matches = -1;
         int32_t match_position = 0;
